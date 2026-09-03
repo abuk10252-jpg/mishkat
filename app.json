@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "مشكاة",
+    "slug": "mishkat",
+    "scheme": "mishkat",
+    "owner": "abuk10254",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/mishkat-logo.png",
+    "splash": {
+      "backgroundColor": "#F8E9EF"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "android": {
+      "package": "com.mishkat.app"
+    },
+    "ios": {
+      "bundleIdentifier": "com.mishkat.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a2cffeab-a783-4c7d-9e77-a5655a42e37a"
+      }
+    },
+    "description": "مشكاة: تطبيق تعليمي إسلامي تفاعلي مخصص للنساء، بدرس يومي مدته 20 دقيقة ورفيقتي كشخصية تعليمية."
+  }
+}
