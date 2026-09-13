@@ -20,8 +20,7 @@
         "فرض",
         "مكروهة"
       ],
-      "correct": 0,
-      "_originalType": "mcq"
+      "correct": 0
     },
     {
       "type": "teach",
@@ -36,8 +35,7 @@
         "نعم فرض",
         "لا، هذا من الفضائل وليس من الفرائض"
       ],
-      "correct": 1,
-      "_originalType": "teachback"
+      "correct": 1
     },
     {
       "type": "teach",
@@ -45,7 +43,7 @@
       "text": "والقنوت خاص بصلاة الصبح فقط، ويكون قبل الركوع، وهو سرًّا. والتشهد سنة، وأوله: (التحيات لله، الزاكيات لله، الطيبات، الصلوات لله...)."
     },
     {
-      "type": "multiSelect",
+      "type": "mcq",
       "id": "q2",
       "q": "القنوت في مذهب الإمام مالك يكون في؟",
       "opts": [
@@ -53,30 +51,7 @@
         "كل الصلوات الخمس",
         "صلاة المغرب فقط"
       ],
-      "correct": 0,
-      "_originalType": "mcq"
-    }
-  ],
-  "durationMinutes": 20,
-  "audience": "women_only",
-  "sessionPlan": [
-    {
-      "id": "lesson",
-      "label": "الدرس",
-      "minutes": 10,
-      "description": "شرح الفكرة الأساسية مع رفيقتي"
-    },
-    {
-      "id": "basics",
-      "label": "الأساسيات",
-      "minutes": 5,
-      "description": "تثبيت القواعد والمصطلحات المهمة"
-    },
-    {
-      "id": "cases",
-      "label": "مسائل فقهية",
-      "minutes": 5,
-      "description": "تطبيقات ومسائل متنوعة من نفس الباب"
+      "correct": 0
     }
   ]
 }

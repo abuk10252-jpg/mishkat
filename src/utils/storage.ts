@@ -2,19 +2,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const KEYS = {
   progress: "zadi:progress",
-  mistakes: "zadi:mistakes",
-  wisdomChest: "zadi:wisdom_chest",
+  mistakes: "zadi:mistakes", // لسجل "كبسولة الزمن"
+  wisdomChest: "zadi:wisdom_chest", // خزينة بطاقات الفوائد
 };
 
 export type Progress = {
   xp: number;
   hearts: number;
   streakDays: number;
-  lastActiveDate: string | null;
+  lastActiveDate: string | null; // ISO date, لحساب الستريك بدون نت
+  lastNewLessonDate: string | null; // ISO date — آخر يوم اتفتح فيه درس جديد لأول مرة
   completedLessonIds: string[];
-  masteryByUnit: Record<string, number>;
-  lastCompletedLessonDate: string | null;
-  lastCompletedLessonId: string | null;
+  masteryByUnit: Record<string, number>; // unitId -> 0..1
 };
 
 const DEFAULT_PROGRESS: Progress = {
@@ -22,23 +21,23 @@ const DEFAULT_PROGRESS: Progress = {
   hearts: 5,
   streakDays: 0,
   lastActiveDate: null,
+  lastNewLessonDate: null,
   completedLessonIds: [],
   masteryByUnit: {},
-  lastCompletedLessonDate: null,
-  lastCompletedLessonId: null,
 };
 
 export async function loadProgress(): Promise<Progress> {
   const raw = await AsyncStorage.getItem(KEYS.progress);
-  if (!raw) return { ...DEFAULT_PROGRESS };
-  const parsed = JSON.parse(raw);
-  return { ...DEFAULT_PROGRESS, ...parsed };
+  if (!raw) return DEFAULT_PROGRESS;
+  return { ...DEFAULT_PROGRESS, ...JSON.parse(raw) };
 }
 
 export async function saveProgress(p: Progress): Promise<void> {
   await AsyncStorage.setItem(KEYS.progress, JSON.stringify(p));
 }
 
+// يسجل غلطة عشان نرجعها بعد فترة في "كبسولة الزمن" — تصحح نفس السؤال
+// بعد أسابيع وتشوف الفرق بنفسك.
 export type MistakeEntry = {
   questionId: string;
   unitId: string;
@@ -53,6 +52,7 @@ export async function logMistake(entry: MistakeEntry): Promise<void> {
   await AsyncStorage.setItem(KEYS.mistakes, JSON.stringify(list));
 }
 
+// يرجع غلطة قديمة (أسبوع فأكتر) لسه ما راجعناها، عشان نعرضها كـ"كبسولة زمن"
 export async function getTimeCapsuleMistake(minDaysAgo = 7): Promise<MistakeEntry | null> {
   const raw = await AsyncStorage.getItem(KEYS.mistakes);
   if (!raw) return null;
@@ -77,13 +77,22 @@ export async function getWisdomChest(): Promise<WisdomCard[]> {
   return raw ? JSON.parse(raw) : [];
 }
 
-export function isUnitUnlocked(unitId: string, orderedUnitIds: string[], progress: Progress, threshold = 0.6): boolean {
+// بوابة الإتقان: الوحدة الجاية ما تتفتح إلا لو سابقتها وصلت نسبة إتقان كافية —
+// هيكل جاهز الآن يشتغل تلقائيًا كل ما تضاف وحدات جديدة بترتيب الكتب الفقهية.
+export function isUnitUnlocked(
+  unitId: string,
+  orderedUnitIds: string[],
+  progress: Progress,
+  threshold = 0.6
+): boolean {
   const idx = orderedUnitIds.indexOf(unitId);
   if (idx <= 0) return true;
   const prevUnit = orderedUnitIds[idx - 1];
   return (progress.masteryByUnit[prevUnit] ?? 0) >= threshold;
 }
 
+// بعد ما تراجع غلطة قديمة في "كبسولة الزمن" وتتذكر الإجابة، نشيلها من قايمة
+// الانتظار عشان ما تتكرر عليك تاني قريب.
 export async function markMistakeReviewed(questionId: string, date: string): Promise<void> {
   const raw = await AsyncStorage.getItem(KEYS.mistakes);
   if (!raw) return;

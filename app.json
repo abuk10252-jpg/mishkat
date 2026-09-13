@@ -1,30 +1,35 @@
 {
   "expo": {
     "name": "مشكاة",
-    "slug": "mishkat",
-    "scheme": "mishkat",
+    "slug": "zadi",
+    "scheme": "zadi",
     "owner": "abuk10254",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "icon": "./assets/mishkat-logo.png",
+    "icon": "./assets/icon.png",
     "splash": {
-      "backgroundColor": "#F8E9EF"
+      "backgroundColor": "#F7EFE8"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "color": "#B85E78"
+        }
+      ]
     ],
     "android": {
-      "package": "com.mishkat.app"
+      "package": "com.zadi.app"
     },
     "ios": {
-      "bundleIdentifier": "com.mishkat.app"
+      "bundleIdentifier": "com.zadi.app"
     },
     "extra": {
       "eas": {
         "projectId": "a2cffeab-a783-4c7d-9e77-a5655a42e37a"
       }
-    },
-    "description": "مشكاة: تطبيق تعليمي إسلامي تفاعلي مخصص للنساء، بدرس يومي مدته 20 دقيقة ورفيقتي كشخصية تعليمية."
+    }
   }
 }

@@ -14,6 +14,7 @@ import {
   saveProgress,
   MistakeEntry,
 } from "../src/utils/storage";
+import { speak, stopSpeaking } from "../src/utils/speech";
 
 // كبسولة الزمن — غلطة قديمة (أسبوع فأكتر) بترجعلك بشكل مفاجئ عشان تشوفي
 // بنفسك إنك اتقدمتي. مش اختبار عقابي؛ الهدف إحساس "أنا فعلاً باقي أفتكر ده".
@@ -24,7 +25,16 @@ export default function TimeCapsule() {
 
   useEffect(() => {
     getTimeCapsuleMistake().then(setMistake);
+    return () => stopSpeaking();
   }, []);
+
+  useEffect(() => {
+    if (mistake) {
+      speak(`من فترة غلطتي في السؤال ده... جربي تتذكري الإجابة الصح دلوقتي: ${mistake.question}`);
+    } else if (mistake === null) {
+      speak("مافي كبسولة زمن جاهزة النهاردة، ارجعي بعدين.");
+    }
+  }, [mistake]);
 
   async function handleRemembered() {
     if (!mistake) return;

@@ -20,8 +20,7 @@
         "الذكورة فقط",
         "الإقامة في بلد معين"
       ],
-      "correct": 0,
-      "_originalType": "mcq"
+      "correct": 0
     },
     {
       "type": "teach",
@@ -68,37 +67,14 @@
       ]
     },
     {
-      "type": "choosePhrase",
+      "type": "teachback",
       "id": "tb1",
       "companionClaim": "رفيقتي قالت: (لو تكلمت كلمة وحدة بالغلط في الصلاة، تبطل الصلاة فورًا) — صح؟",
       "opts": [
         "نعم تبطل فورًا",
         "شرط الصحة هو ترك الكلام عمومًا؛ لكن هذا يُفصَّل حسب كثرته وعمده في أبواب مفسدات الصلاة لاحقًا"
       ],
-      "correct": 1,
-      "_originalType": "teachback"
-    }
-  ],
-  "durationMinutes": 20,
-  "audience": "women_only",
-  "sessionPlan": [
-    {
-      "id": "lesson",
-      "label": "الدرس",
-      "minutes": 10,
-      "description": "شرح الفكرة الأساسية مع رفيقتي"
-    },
-    {
-      "id": "basics",
-      "label": "الأساسيات",
-      "minutes": 5,
-      "description": "تثبيت القواعد والمصطلحات المهمة"
-    },
-    {
-      "id": "cases",
-      "label": "مسائل فقهية",
-      "minutes": 5,
-      "description": "تطبيقات ومسائل متنوعة من نفس الباب"
+      "correct": 1
     }
   ]
 }
