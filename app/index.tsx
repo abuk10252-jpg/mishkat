@@ -12,10 +12,17 @@ import { playTapSound } from "../src/utils/sound";
 import { LESSON_ORDER } from "../src/data/lessons";
 
 const UNIT_TITLES: Record<string, string> = {
+  libas: "اللباس والزينة",
   tahara: "كتاب الطهارة",
   salah: "كتاب الصلاة",
   janazah: "باب الجنائز",
   sawm: "كتاب الصيام",
+  zakat: "كتاب الزكاة",
+  hajj: "الحج والعمرة",
+  family: "النكاح والأسرة",
+  muamalat: "المعاملات والآداب",
+  ikhtilaf: "أدب الخلاف الفقهي",
+  challenge: "التحدي النهائي",
 };
 
 const DAILY_XP_GOAL = 30;

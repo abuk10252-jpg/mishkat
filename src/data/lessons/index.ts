@@ -12,10 +12,11 @@ import salah6 from "./salah-6.json";
 import janazah1 from "./janazah-1.json";
 import sawm1 from "./sawm-1.json";
 import sawm2 from "./sawm-2.json";
+import { FIQH_EXPANSION } from "./fiqh-expansion";
 
 // كل درس جديد تضيفه في src/data/lessons/*.json، سجله هنا بنفس id الملف،
 // وزوّده في LESSON_ORDER بترتيب أبواب الكتب (طهارة ← صلاة ← جنائز ← صيام).
-export const LESSONS: Record<string, typeof tahara1> = {
+export const LESSONS: Record<string, any> = {
   [tahara1.id]: tahara1,
   [tahara2.id]: tahara2,
   [tahara3.id]: tahara3,
@@ -30,6 +31,7 @@ export const LESSONS: Record<string, typeof tahara1> = {
   [janazah1.id]: janazah1,
   [sawm1.id]: sawm1,
   [sawm2.id]: sawm2,
+  ...Object.fromEntries(FIQH_EXPANSION.map((lesson) => [lesson.id, lesson])),
 };
 
 // ترتيب الدروس داخل كل وحدة (بترتيب أبواب الكتاب) — ده أساس بوابة الإتقان
@@ -49,6 +51,7 @@ export const LESSON_ORDER = [
   janazah1,
   sawm1,
   sawm2,
+  ...FIQH_EXPANSION.map((l) => ({ id: l.id, title: l.title, unitId: l.unitId })),
 ].map((l) => ({ id: l.id, title: l.title, unitId: l.unitId }));
 
-export const UNIT_ORDER = ["tahara", "salah", "janazah", "sawm"];
+export const UNIT_ORDER = ["libas", "tahara", "salah", "sawm", "zakat", "hajj", "family", "muamalat", "ikhtilaf", "challenge"];
