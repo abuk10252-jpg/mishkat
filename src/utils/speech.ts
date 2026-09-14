@@ -1,25 +1,40 @@
 import * as Speech from "expo-speech";
 
-// رفيقتي "بتتكلم" فعليًا — باستخدام محرك تحويل النص لصوت المدمج في نظام
-// تشغيل الهاتف (Text-to-Speech)، مش تسجيل صوتي حقيقي لممثلة صوت (ده كان
-// هيحتاج تسجيل كل جملة يدويًا، وما ينفعش مع محتوى ديناميكي بيتغير من ملفات
-// JSON). الصوت بيعتمد على أصوات العربي المتاحة على جهاز المستخدمة نفسه.
-
 let currentlySpeaking = false;
+let preferredVoice: string | undefined;
+let voiceLoaded = false;
 
-export function speak(text: string): void {
+async function getFemaleArabicVoice(): Promise<string | undefined> {
+  if (voiceLoaded) return preferredVoice;
+  voiceLoaded = true;
+  try {
+    const voices = await Speech.getAvailableVoicesAsync();
+    const arabic = voices.filter((voice) => voice.language.toLowerCase().startsWith("ar"));
+    const femaleHint = /(female|woman|فاطمة|أنثى|zira|saba|laila|maged)/i;
+    preferredVoice = arabic.find((voice) => femaleHint.test(`${voice.name} ${voice.identifier}`))?.identifier ?? arabic[0]?.identifier;
+  } catch {
+    preferredVoice = undefined;
+  }
+  return preferredVoice;
+}
+
+export async function prepareSpeech(): Promise<void> {
+  await getFemaleArabicVoice();
+}
+
+export async function speak(text: string, learnerName = ""): Promise<void> {
+  const cleanText = learnerName && !text.includes(learnerName) ? `${learnerName}، ${text}` : text;
   Speech.stop();
   currentlySpeaking = true;
-  Speech.speak(text, {
+  const voice = await getFemaleArabicVoice();
+  Speech.speak(cleanText, {
     language: "ar",
-    pitch: 1.08, // أعلى شوية من الطبيعي، إحساس أرق وأخف
-    rate: 0.92, // أبطأ شوية عن الافتراضي، وضوح أكتر
-    onDone: () => {
-      currentlySpeaking = false;
-    },
-    onStopped: () => {
-      currentlySpeaking = false;
-    },
+    voice,
+    pitch: 1.12,
+    rate: 0.9,
+    onDone: () => { currentlySpeaking = false; },
+    onStopped: () => { currentlySpeaking = false; },
+    onError: () => { currentlySpeaking = false; },
   });
 }
 

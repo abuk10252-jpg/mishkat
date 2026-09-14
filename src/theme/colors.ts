@@ -1,56 +1,50 @@
-// نظام ألوان "حي" — مش لوحة ثابتة زي أغلب التطبيقات.
-// فكرة خارج الصندوق: الألوان بتتغير مع وقت اليوم (إحساس بإيقاع العبادة اليومي)
-// وبتتعمّق تدريجيًا كل ما تقدمك في الحديقة/العلم يزيد (إحساس نمو حقيقي مش لوحة جامدة).
-//
-// لوحة نسائية دافئة (وردي/موف/ذهبي) — بدون أي درجات خضراء، بناءً على طلب التصميم.
-
+// لوحة ألوان مشرقة ومريحة — مصممة لتشعر المتعلمة بالطاقة والدفء بدل الكآبة.
+// تتغير مع وقت اليوم، لكن كل الفترات تحافظ على سطوع ووضوح مناسبين للتعلم.
 import { DayPeriod } from "../utils/timeOfDay";
 
 export type Palette = {
-  sky: [string, string]; // تدرج خلفية الشاشة الرئيسية
-  ground: string; // لون الحديقة/الأرضية
-  accent: string; // لون العناصر التفاعلية الأساسية
-  accentDeep: string; // نص/حدود فوق accent
-  companionRobe: string; // لمسة لونية خفيفة قرب رفيقتي تتماشى مع وقت اليوم
+  sky: [string, string];
+  ground: string;
+  accent: string;
+  accentDeep: string;
+  companionRobe: string;
 };
 
-// كل فترة يوم ليها هوية لونية مستوحاة من ضوء السماء الفعلي في الوقت ده —
-// مش اختيار عشوائي، لكن انعكاس لإيقاع يوم حقيقي. كل الدرجات دلوقتي وردي/موف/ذهبي/كريمي.
 const PERIODS: Record<DayPeriod, Palette> = {
   fajr: {
-    sky: ["#3C2E4A", "#7A5C8F"], // بنفسجي الفجر الدافئ
-    ground: "#4A3358",
-    accent: "#B892CE",
-    accentDeep: "#2E1F3A",
-    companionRobe: "#6B4C7A",
+    sky: ["#FFF4E6", "#F8D9E8"],
+    ground: "#FFF8F2",
+    accent: "#E78BAA",
+    accentDeep: "#6D3B5A",
+    companionRobe: "#C887B5",
   },
   duha: {
-    sky: ["#FAEEDA", "#F3C9A8"], // ضحى ذهبي كريمي دافئ
-    ground: "#F7EFE8",
-    accent: "#D4AF7A",
-    accentDeep: "#5A3E1E",
-    companionRobe: "#C97B92",
+    sky: ["#FFF9D9", "#FFDCA8"],
+    ground: "#FFFDF3",
+    accent: "#E7A33E",
+    accentDeep: "#71451D",
+    companionRobe: "#D68191",
   },
   midday: {
-    sky: ["#FCEFF3", "#F3D0DC"], // نهار وردي فاتح هادي
-    ground: "#F7EFE8",
-    accent: "#B85E78",
-    accentDeep: "#5A2C3D",
-    companionRobe: "#9B7EBD",
+    sky: ["#FFF1F5", "#FFD4E0"],
+    ground: "#FFF9F7",
+    accent: "#D86688",
+    accentDeep: "#71334D",
+    companionRobe: "#9C80C5",
   },
   maghrib: {
-    sky: ["#FAECE7", "#E8A091"], // غروب وردي مرجاني دافئ
-    ground: "#F0C9BE",
-    accent: "#C9705A",
-    accentDeep: "#4A2318",
-    companionRobe: "#993C4A",
+    sky: ["#FFF0E8", "#FFC3A7"],
+    ground: "#FFF8F4",
+    accent: "#E17A5D",
+    accentDeep: "#713B2E",
+    companionRobe: "#C76572",
   },
   isha: {
-    sky: ["#2A1F35", "#4A2E4F"], // ليل هادئ بنفسجي عميق
-    ground: "#3A2440",
-    accent: "#B08BC7",
-    accentDeep: "#1E1526",
-    companionRobe: "#5A3A63",
+    sky: ["#F4ECFF", "#DCCAF5"],
+    ground: "#FBF8FF",
+    accent: "#9974C6",
+    accentDeep: "#503A70",
+    companionRobe: "#8B70B9",
   },
 };
 
@@ -58,11 +52,8 @@ export function getPalette(period: DayPeriod): Palette {
   return PERIODS[period];
 }
 
-// كل ما نسبة الإتقان الكلية (0-1) تزيد، لون "الحديقة" يميل تدريجيًا لدرجات
-// أدفى وأنضج (من وردي فاتح لعنّابي عميق فيه لمسة ذهبية) — التقدم نفسه بيتحول
-// للون، مش بس رقم في شريط.
 export function growthTint(masteryRatio: number): string {
-  const stops = ["#F3D9E1", "#E8A8BC", "#D4708F", "#B85E78", "#7A3B52"];
+  const stops = ["#FFD8E6", "#F6B4CA", "#E98EAD", "#D96C8D", "#B95579"];
   const idx = Math.min(stops.length - 1, Math.floor(masteryRatio * stops.length));
   return stops[idx];
 }

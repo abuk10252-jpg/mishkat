@@ -66,6 +66,24 @@ export function Rafiqati({
     return () => loop.stop();
   }, []);
   const breatheScale = breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.025] });
+  const sway = useRef(new Animated.Value(0)).current;
+  const bob = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const swayLoop = Animated.loop(Animated.sequence([
+      Animated.timing(sway, { toValue: 1, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(sway, { toValue: -1, duration: 2800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(sway, { toValue: 0, duration: 1200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+    ]));
+    const bobLoop = Animated.loop(Animated.sequence([
+      Animated.timing(bob, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(bob, { toValue: 0, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+    ]));
+    swayLoop.start();
+    bobLoop.start();
+    return () => { swayLoop.stop(); bobLoop.stop(); };
+  }, []);
+  const swayRotate = sway.interpolate({ inputRange: [-1, 0, 1], outputRange: ["-2deg", "0deg", "2deg"] });
+  const bobTranslate = bob.interpolate({ inputRange: [0, 1], outputRange: [0, -3] });
 
   // -- الانتقال الناعم بين الحالات المزاجية: صورتين فوق بعض، القديمة بتختفي
   // والجديدة بتظهر بدل ما تتقفز فجأة.
@@ -104,7 +122,7 @@ export function Rafiqati({
         style={{
           width: size,
           height,
-          transform: [{ scale: breatheScale }, { translateY: bounceTranslateY }],
+          transform: [{ scale: breatheScale }, { rotate: swayRotate }, { translateY: bobTranslate }, { translateY: bounceTranslateY }],
         }}
       >
         {prevMood && (
@@ -119,6 +137,8 @@ export function Rafiqati({
           style={[StyleSheet.absoluteFill, prevMood ? { opacity: crossfade } : null]}
           resizeMode="contain"
         />
+        <Animated.View pointerEvents="none" style={[styles.sparkle, { backgroundColor: palette.accent, opacity: breathe, top: size * 0.2, left: size * 0.08 }]} />
+        <Animated.View pointerEvents="none" style={[styles.sparkleSmall, { backgroundColor: palette.accent, opacity: crossfade, top: size * 0.42, right: size * 0.03 }]} />
       </Animated.View>
       {showMoodIcon && (
         <View
@@ -160,6 +180,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     padding: 4,
   },
+  sparkle: { position: "absolute", width: 6, height: 6, borderRadius: 6 },
+  sparkleSmall: { position: "absolute", width: 4, height: 4, borderRadius: 4 },
   row: {
     flexDirection: "row-reverse",
     gap: 10,

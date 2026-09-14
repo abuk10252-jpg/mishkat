@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable, TextInput } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { View, Text, StyleSheet, Pressable, TextInput, Animated, Easing } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { getDayPeriod } from "../../src/utils/timeOfDay";
 import { getPalette } from "../../src/theme/colors";
 import { RafiqatiBubble } from "../../src/components/Rafiqati";
 import { LESSONS } from "../../src/data/lessons";
-import { loadProgress, saveProgress, logMistake, Progress } from "../../src/utils/storage";
-import { playCorrectSound, playWrongSound } from "../../src/utils/sound";
+import { loadProgress, saveProgress, logMistake, Progress, getLearnerName } from "../../src/utils/storage";
+import { playCorrectSound, playWrongSound, playTapSound } from "../../src/utils/sound";
 import { speak, stopSpeaking } from "../../src/utils/speech";
 
 type Step = (typeof LESSONS)[string]["steps"][number];
@@ -35,7 +36,7 @@ function buildReviewRound(currentLessonId: string, completedLessonIds: string[])
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  return pool.slice(0, REVIEW_TARGET).map((s, i) => ({ ...s, id: `rev-${i}-${s.id}` }));
+  return pool.slice(0, REVIEW_TARGET).map((s, i) => ({ ...s, id: `rev-${i}-${s.id}` })) as Step[];
 }
 
 export default function Lesson() {
@@ -51,6 +52,9 @@ export default function Lesson() {
   const [orderPicked, setOrderPicked] = useState<string[]>([]);
   const [writeValue, setWriteValue] = useState("");
   const [writeChecked, setWriteChecked] = useState<null | boolean>(null);
+  const [learnerName, setLearnerName] = useState("");
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const contentOffset = useRef(new Animated.Value(12)).current;
 
   useEffect(() => {
     if (!lesson) return;
@@ -69,6 +73,7 @@ export default function Lesson() {
         ]);
       }
     });
+    getLearnerName().then(setLearnerName);
   }, [lesson?.id]);
 
   if (!lesson) {
@@ -86,13 +91,19 @@ export default function Lesson() {
     setOrderPicked([]);
     setWriteValue("");
     setWriteChecked(null);
+    contentOpacity.setValue(0);
+    contentOffset.setValue(12);
+    Animated.parallel([
+      Animated.timing(contentOpacity, { toValue: 1, duration: 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(contentOffset, { toValue: 0, duration: 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    ]).start();
 
     // رفيقتي بتتكلم فعليًا لما يكون عندها نص شرح أو ادّعاء تصحيح
-    if (step?.type === "teach") speak((step as any).text);
-    else if (step?.type === "teachback") speak((step as any).companionClaim);
-    else if (step?.type === "niyyah") speak("قبل ما نبدأ، خصص هذه اللحظة نية لله في طلب العلم.");
+    if (step?.type === "teach") speak((step as any).text, learnerName);
+    else if (step?.type === "teachback") speak((step as any).companionClaim, learnerName);
+    else if (step?.type === "niyyah") speak("قبل ما نبدأ، خصص هذه اللحظة نية لله في طلب العلم.", learnerName);
     else stopSpeaking();
-  }, [stepIndex]);
+  }, [stepIndex, learnerName]);
 
   useEffect(() => {
     return () => stopSpeaking(); // اقفلي الصوت لو المستخدمة خرجت من الدرس فجأة
@@ -111,6 +122,8 @@ export default function Lesson() {
     } else if (correct === true) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       playCorrectSound();
+    } else {
+      playTapSound();
     }
 
     if (stepIndex + 1 >= steps.length) {
@@ -130,10 +143,20 @@ export default function Lesson() {
 
   return (
     <LinearGradient colors={palette.sky} style={styles.fill}>
+      <View style={styles.lessonHeader}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-forward" size={20} color={palette.accentDeep} />
+        </Pressable>
+        <View style={styles.progressMeta}>
+          <Text style={[styles.progressLabel, { color: palette.accentDeep }]}>رحلة الدرس</Text>
+          <Text style={[styles.progressCount, { color: palette.accentDeep }]}>{stepIndex + 1} من {steps.length}</Text>
+        </View>
+      </View>
       <View style={styles.barTrack}>
         <View style={[styles.barFill, { width: `${progressPct}%`, backgroundColor: palette.accent }]} />
       </View>
 
+      <Animated.View style={{ flex: 1, opacity: contentOpacity, transform: [{ translateY: contentOffset }] }}>
       {step.type === "niyyah" && (
         <View style={styles.center}>
           <RafiqatiBubble
@@ -149,7 +172,7 @@ export default function Lesson() {
 
       {step.type === "teach" && (
         <View>
-          <RafiqatiBubble palette={palette} mood="neutral" text={step.text} />
+          <RafiqatiBubble palette={palette} mood="neutral" text={step.text ?? ""} />
           <Pressable style={[styles.btn, { borderColor: palette.accent }]} onPress={() => goNext()}>
             <Text style={styles.btnText}>التالي</Text>
           </Pressable>
@@ -159,14 +182,14 @@ export default function Lesson() {
       {step.type === "mcq" && (
         <View>
           <Text style={styles.question}>{step.q}</Text>
-          {step.opts.map((opt: string, i: number) => (
+          {(step.opts ?? []).map((opt: string, i: number) => (
             <Pressable
               key={i}
               disabled={answered}
               onPress={() => {
                 setAnswered(true);
                 const correct = i === step.correct;
-                setTimeout(() => goNext(correct, correct ? undefined : { question: step.q, qId: step.id }), 700);
+                setTimeout(() => goNext(correct, correct ? undefined : { question: step.q ?? "", qId: step.id ?? "" }), 700);
               }}
               style={[styles.opt, { borderColor: palette.accent }]}
             >
@@ -178,9 +201,9 @@ export default function Lesson() {
 
       {step.type === "teachback" && (
         <View>
-          <RafiqatiBubble palette={palette} mood="thinking" text={step.companionClaim} />
+          <RafiqatiBubble palette={palette} mood="thinking" text={step.companionClaim ?? ""} />
           <Text style={styles.hint}>صحح رفيقتك</Text>
-          {step.opts.map((opt: string, i: number) => (
+          {(step.opts ?? []).map((opt: string, i: number) => (
             <Pressable
               key={i}
               disabled={answered}
@@ -188,7 +211,7 @@ export default function Lesson() {
                 setAnswered(true);
                 const correct = i === step.correct;
                 setTimeout(
-                  () => goNext(correct, correct ? undefined : { question: step.companionClaim, qId: step.id }),
+                  () => goNext(correct, correct ? undefined : { question: step.companionClaim ?? "", qId: step.id ?? "" }),
                   700
                 );
               }}
@@ -219,11 +242,11 @@ export default function Lesson() {
                   setWriteChecked(false);
                   return;
                 }
-                const ok = step.acceptableAnswers.some(
+                const ok = (step.acceptableAnswers ?? []).some(
                   (a: string) => a.trim() === writeValue.trim()
                 );
                 setWriteChecked(ok);
-                setTimeout(() => goNext(ok, ok ? undefined : { question: step.q, qId: step.id }), 900);
+                setTimeout(() => goNext(ok, ok ? undefined : { question: step.q ?? "", qId: step.id ?? "" }), 900);
               }}
             >
               <Text style={styles.btnText}>تأكيد</Text>
@@ -238,9 +261,10 @@ export default function Lesson() {
           palette={palette}
           picked={orderPicked}
           setPicked={setOrderPicked}
-          onDone={(ok: boolean) => goNext(ok, ok ? undefined : { question: step.instruction, qId: step.id })}
+          onDone={(ok: boolean) => goNext(ok, ok ? undefined : { question: step.instruction ?? "", qId: step.id ?? "" })}
         />
       )}
+      </Animated.View>
     </LinearGradient>
   );
 }
@@ -278,17 +302,27 @@ function OrderStep({ step, palette, picked, setPicked, onDone }: any) {
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1, paddingTop: 60, paddingHorizontal: 20 },
+  fill: { flex: 1, paddingTop: 52, paddingHorizontal: 20 },
   center: { flex: 1, justifyContent: "center" },
-  barTrack: { height: 6, borderRadius: 6, backgroundColor: "#00000022", marginBottom: 24 },
+  lessonHeader: { flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
+  backButton: { width: 40, height: 40, borderRadius: 14, backgroundColor: "#ffffff88", alignItems: "center", justifyContent: "center" },
+  progressMeta: { flexDirection: "row-reverse", alignItems: "baseline", gap: 8 },
+  progressLabel: { fontSize: 16, fontWeight: "800", writingDirection: "rtl" },
+  progressCount: { fontSize: 10, opacity: 0.65, writingDirection: "rtl" },
+  barTrack: { height: 8, borderRadius: 8, backgroundColor: "#00000018", marginBottom: 24, overflow: "hidden" },
   barFill: { height: 6, borderRadius: 6 },
-  question: { fontSize: 15, writingDirection: "rtl", textAlign: "right", marginBottom: 14 },
+  question: { fontSize: 18, lineHeight: 27, fontWeight: "700", writingDirection: "rtl", textAlign: "right", marginBottom: 18 },
   opt: {
     borderWidth: 0.5,
     borderRadius: 12,
     padding: 12,
     marginBottom: 10,
     backgroundColor: "#ffffffaa",
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
   optText: { fontSize: 14, writingDirection: "rtl", textAlign: "right" },
   btn: { borderWidth: 0.5, borderRadius: 12, padding: 12, alignItems: "center", marginTop: 8 },
