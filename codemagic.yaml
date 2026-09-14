@@ -6,7 +6,7 @@ workflows:
     environment:
       node: 20
       vars:
-        EXPO_TOKEN: $EXPO_TOKEN
+        EXPO_TOKEN: "BFvvG5jMucpe18ApPzUWG13AkrxEozTm_Ko6cQAM"
     scripts:
       - name: تنظيف الكاش قبل التثبيت
         script: |
