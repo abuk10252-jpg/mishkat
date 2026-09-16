@@ -8,7 +8,7 @@ import { getDayPeriod } from "../../src/utils/timeOfDay";
 import { getPalette } from "../../src/theme/colors";
 import { RafiqatiBubble } from "../../src/components/Rafiqati";
 import { LESSONS } from "../../src/data/lessons";
-import { loadProgress, saveProgress, logMistake, Progress, getLearnerName } from "../../src/utils/storage";
+import { loadProgress, saveProgress, logMistake, Progress, getLearnerName, getCompanionCustomization, CompanionCustomization, DEFAULT_COMPANION_CUSTOMIZATION } from "../../src/utils/storage";
 import { playCorrectSound, playWrongSound, playTapSound } from "../../src/utils/sound";
 import { speak, stopSpeaking } from "../../src/utils/speech";
 
@@ -53,6 +53,7 @@ export default function Lesson() {
   const [writeValue, setWriteValue] = useState("");
   const [writeChecked, setWriteChecked] = useState<null | boolean>(null);
   const [learnerName, setLearnerName] = useState("");
+  const [customization, setCustomization] = useState<CompanionCustomization>(DEFAULT_COMPANION_CUSTOMIZATION);
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const contentOffset = useRef(new Animated.Value(12)).current;
 
@@ -74,6 +75,7 @@ export default function Lesson() {
       }
     });
     getLearnerName().then(setLearnerName);
+    getCompanionCustomization().then(setCustomization);
   }, [lesson?.id]);
 
   if (!lesson) {
@@ -162,6 +164,7 @@ export default function Lesson() {
           <RafiqatiBubble
             palette={palette}
             mood="encouraging"
+            customization={customization}
             text="قبل ما نبدأ، خصص هذه اللحظة نية لله في طلب العلم."
           />
           <Pressable style={[styles.btn, { borderColor: palette.accent }]} onPress={() => goNext()}>
@@ -172,7 +175,7 @@ export default function Lesson() {
 
       {step.type === "teach" && (
         <View>
-          <RafiqatiBubble palette={palette} mood="neutral" text={step.text ?? ""} />
+          <RafiqatiBubble palette={palette} mood="neutral" customization={customization} text={step.text ?? ""} />
           <Pressable style={[styles.btn, { borderColor: palette.accent }]} onPress={() => goNext()}>
             <Text style={styles.btnText}>التالي</Text>
           </Pressable>
@@ -201,7 +204,7 @@ export default function Lesson() {
 
       {step.type === "teachback" && (
         <View>
-          <RafiqatiBubble palette={palette} mood="thinking" text={step.companionClaim ?? ""} />
+          <RafiqatiBubble palette={palette} mood="thinking" customization={customization} text={step.companionClaim ?? ""} />
           <Text style={styles.hint}>صحح رفيقتك</Text>
           {(step.opts ?? []).map((opt: string, i: number) => (
             <Pressable

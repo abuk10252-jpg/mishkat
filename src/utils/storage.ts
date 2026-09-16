@@ -5,6 +5,17 @@ const KEYS = {
   mistakes: "zadi:mistakes",
   wisdomChest: "zadi:wisdom_chest",
   learnerName: "zadi:learner_name",
+  companionCustomization: "zadi:companion_customization",
+};
+
+export type CompanionCustomization = {
+  outfit: "rose" | "sunrise" | "lavender" | "mint";
+  accessory: "none" | "book" | "sparkle" | "flower";
+};
+
+export const DEFAULT_COMPANION_CUSTOMIZATION: CompanionCustomization = {
+  outfit: "rose",
+  accessory: "sparkle",
 };
 
 export type Progress = {
@@ -43,6 +54,16 @@ export async function getLearnerName(): Promise<string> {
 
 export async function saveLearnerName(name: string): Promise<void> {
   await AsyncStorage.setItem(KEYS.learnerName, name.trim());
+}
+
+export async function getCompanionCustomization(): Promise<CompanionCustomization> {
+  const raw = await AsyncStorage.getItem(KEYS.companionCustomization);
+  if (!raw) return DEFAULT_COMPANION_CUSTOMIZATION;
+  return { ...DEFAULT_COMPANION_CUSTOMIZATION, ...JSON.parse(raw) };
+}
+
+export async function saveCompanionCustomization(customization: CompanionCustomization): Promise<void> {
+  await AsyncStorage.setItem(KEYS.companionCustomization, JSON.stringify(customization));
 }
 
 export type MistakeEntry = {

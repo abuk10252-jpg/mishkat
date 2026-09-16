@@ -6,7 +6,7 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { getDayPeriod } from "../src/utils/timeOfDay";
 import { getPalette, growthTint } from "../src/theme/colors";
 import { Rafiqati } from "../src/components/Rafiqati";
-import { loadProgress, Progress, getTimeCapsuleMistake, MistakeEntry, getLearnerName, saveLearnerName } from "../src/utils/storage";
+import { loadProgress, Progress, getTimeCapsuleMistake, MistakeEntry, getLearnerName, saveLearnerName, CompanionCustomization, DEFAULT_COMPANION_CUSTOMIZATION, getCompanionCustomization, saveCompanionCustomization } from "../src/utils/storage";
 import { prepareSpeech, speak } from "../src/utils/speech";
 import { playTapSound } from "../src/utils/sound";
 import { LESSON_ORDER } from "../src/data/lessons";
@@ -34,6 +34,8 @@ export default function Home() {
   const [learnerName, setLearnerName] = useState("");
   const [nameDraft, setNameDraft] = useState("");
   const [nameModalVisible, setNameModalVisible] = useState(false);
+  const [customization, setCustomization] = useState<CompanionCustomization>(DEFAULT_COMPANION_CUSTOMIZATION);
+  const [customizeVisible, setCustomizeVisible] = useState(false);
   const period = getDayPeriod();
   const palette = getPalette(period);
   const intro = useRef(new Animated.Value(0)).current;
@@ -44,6 +46,7 @@ export default function Home() {
       getTimeCapsuleMistake().then(setCapsule);
       getLearnerName().then((name) => { setLearnerName(name); if (!name) setNameModalVisible(true); });
       prepareSpeech();
+      getCompanionCustomization().then(setCustomization);
     }, [])
   );
 
@@ -71,7 +74,10 @@ export default function Home() {
               <Text style={[styles.subtitle, { color: palette.accentDeep }]}>رحلة علمٍ بنورٍ هادئ</Text>
             </View>
           </View>
-          <Pressable style={styles.iconButton} onPress={() => router.push("/capsule")}><Ionicons name="time-outline" size={22} color={palette.accentDeep} /></Pressable>
+          <View style={styles.topActions}>
+            <Pressable style={styles.iconButton} onPress={() => setCustomizeVisible(true)}><Ionicons name="color-palette-outline" size={22} color={palette.accentDeep} /></Pressable>
+            <Pressable style={styles.iconButton} onPress={() => router.push("/capsule")}><Ionicons name="time-outline" size={22} color={palette.accentDeep} /></Pressable>
+          </View>
         </View>
 
         <View style={styles.statsRow}>
@@ -88,7 +94,7 @@ export default function Home() {
             <View style={styles.goalTrack}><View style={[styles.goalFill, { width: `${Math.max(8, dailyProgress * 100)}%`, backgroundColor: palette.accent }]} /></View>
             <Text style={styles.goalLabel}>{Math.min(dailyXp, DAILY_XP_GOAL)} / {DAILY_XP_GOAL} نقطة اليوم</Text>
           </View>
-          <Rafiqati mood={dailyProgress >= 1 ? "happy" : "encouraging"} palette={palette} size={84} showMoodIcon={false} />
+          <Rafiqati mood={dailyProgress >= 1 ? "happy" : "encouraging"} palette={palette} size={84} showMoodIcon={false} customization={customization} />
         </View>
 
         {capsule && (
@@ -132,7 +138,7 @@ export default function Home() {
       <Modal visible={nameModalVisible} transparent animationType="fade" onRequestClose={() => {}}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.modalBackdrop}>
           <View style={styles.nameCard}>
-            <Rafiqati mood="encouraging" palette={palette} size={86} />
+            <Rafiqati mood="encouraging" palette={palette} size={86} customization={customization} />
             <Text style={[styles.nameTitle, { color: palette.accentDeep }]}>خلينا نتعرّف عليكِ</Text>
             <Text style={[styles.nameHint, { color: palette.accentDeep }]}>ما الاسم الذي تحبين أن تناديكِ به رفيقتي؟</Text>
             <TextInput value={nameDraft} onChangeText={setNameDraft} autoFocus placeholder="اكتبي اسمك هنا" placeholderTextColor="#9B8790" style={[styles.nameInput, { borderColor: palette.accent }]} textAlign="right" />
@@ -141,6 +147,23 @@ export default function Home() {
             </Pressable>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+      <Modal visible={customizeVisible} transparent animationType="slide" onRequestClose={() => setCustomizeVisible(false)}>
+        <View style={styles.customizeBackdrop}>
+          <View style={styles.customizeCard}>
+            <View style={styles.customizeTitleRow}><Text style={[styles.customizeTitle, { color: palette.accentDeep }]}>استوديو رفيقتي</Text><Pressable onPress={() => setCustomizeVisible(false)}><Ionicons name="close-circle" size={25} color={palette.accentDeep} /></Pressable></View>
+            <View style={styles.previewRow}><Rafiqati mood="happy" palette={palette} size={112} customization={customization} /><View style={styles.previewCopy}><Text style={[styles.previewTitle, { color: palette.accentDeep }]}>اختاري لمستها اليوم</Text><Text style={[styles.previewText, { color: palette.accentDeep }]}>كلما واصلتِ التعلم، تفتحين خيارات أكثر.</Text></View></View>
+            <Text style={[styles.choiceLabel, { color: palette.accentDeep }]}>الأزياء</Text>
+            <View style={styles.choiceRow}>{([
+              ["rose", "وردي", "#E78BAA", true], ["sunrise", "ذهبي", "#E7A33E", true], ["lavender", "بنفسجي", "#9974C6", progress?.xp !== undefined && progress.xp >= 30], ["mint", "نعناعي", "#68BFA8", progress?.streakDays !== undefined && progress.streakDays >= 3],
+            ] as const).map(([id, label, color, unlocked]) => <Pressable key={id} disabled={!unlocked} onPress={() => setCustomization((c) => ({ ...c, outfit: id }))} style={[styles.choice, { borderColor: customization.outfit === id ? color : "#00000012", opacity: unlocked ? 1 : 0.4 }]}><View style={[styles.colorDot, { backgroundColor: color }]} /><Text style={[styles.choiceText, { color: palette.accentDeep }]}>{label}</Text>{!unlocked && <Ionicons name="lock-closed" size={12} color={palette.accentDeep} />}</Pressable>)}</View>
+            <Text style={[styles.choiceLabel, { color: palette.accentDeep }]}>الإكسسوارات</Text>
+            <View style={styles.choiceRow}>{([
+              ["sparkle", "نجوم", "sparkles-outline", true], ["book", "كتاب", "book-outline", progress?.xp !== undefined && progress.xp >= 45], ["flower", "زهرة", "flower-outline", progress?.streakDays !== undefined && progress.streakDays >= 7], ["none", "بدون", null, true],
+            ] as const).map(([id, label, icon, unlocked]) => <Pressable key={id} disabled={!unlocked} onPress={() => setCustomization((c) => ({ ...c, accessory: id }))} style={[styles.accessoryChoice, { borderColor: customization.accessory === id ? palette.accent : "#00000012", opacity: unlocked ? 1 : 0.4 }]}>{icon ? <Ionicons name={icon} size={19} color={palette.accentDeep} /> : <Ionicons name="remove-outline" size={19} color={palette.accentDeep} />}<Text style={[styles.choiceText, { color: palette.accentDeep }]}>{label}</Text></Pressable>)}</View>
+            <Pressable style={[styles.saveStyleButton, { backgroundColor: palette.accentDeep }]} onPress={async () => { await saveCompanionCustomization(customization); setCustomizeVisible(false); await playTapSound(); }}><Text style={styles.nameButtonText}>احفظي الإطلالة</Text></Pressable>
+          </View>
+        </View>
       </Modal>
     </LinearGradient>
   );
@@ -153,6 +176,7 @@ function Stat({ icon, label, value, color }: { icon: keyof typeof Ionicons.glyph
 const styles = StyleSheet.create({
   fill: { flex: 1, paddingTop: 52, paddingHorizontal: 18 },
   topBar: { flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", marginBottom: 18 },
+  topActions: { flexDirection: "row-reverse", gap: 8 },
   brandRow: { flexDirection: "row-reverse", alignItems: "center", gap: 10 },
   logo: { width: 38, height: 38, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   brand: { textAlign: "right", fontSize: 20, fontWeight: "800", writingDirection: "rtl" },
@@ -200,4 +224,19 @@ const styles = StyleSheet.create({
   nameInput: { width: "100%", borderWidth: 1, borderRadius: 14, padding: 13, fontSize: 15, writingDirection: "rtl", backgroundColor: "#fff" },
   nameButton: { width: "100%", borderRadius: 14, alignItems: "center", padding: 14, marginTop: 12 },
   nameButtonText: { color: "#fff", fontSize: 14, fontWeight: "800", writingDirection: "rtl" },
+  customizeBackdrop: { flex: 1, backgroundColor: "#24152688", justifyContent: "flex-end" },
+  customizeCard: { backgroundColor: "#FFF9F7", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 20, paddingBottom: 28 },
+  customizeTitleRow: { flexDirection: "row-reverse", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  customizeTitle: { fontSize: 20, fontWeight: "800", writingDirection: "rtl" },
+  previewRow: { flexDirection: "row-reverse", alignItems: "center", gap: 14, backgroundColor: "#FFFFFF", borderRadius: 20, padding: 12, marginBottom: 12 },
+  previewCopy: { flex: 1, alignItems: "flex-end" },
+  previewTitle: { fontSize: 15, fontWeight: "800", writingDirection: "rtl", textAlign: "right" },
+  previewText: { fontSize: 11, opacity: 0.7, writingDirection: "rtl", textAlign: "right", marginTop: 4 },
+  choiceLabel: { fontSize: 13, fontWeight: "800", textAlign: "right", writingDirection: "rtl", marginTop: 8, marginBottom: 7 },
+  choiceRow: { flexDirection: "row-reverse", flexWrap: "wrap", gap: 8 },
+  choice: { flexDirection: "row-reverse", alignItems: "center", gap: 5, borderWidth: 1.5, borderRadius: 13, paddingVertical: 8, paddingHorizontal: 10 },
+  colorDot: { width: 17, height: 17, borderRadius: 9 },
+  accessoryChoice: { flexDirection: "row-reverse", alignItems: "center", gap: 5, borderWidth: 1.5, borderRadius: 13, paddingVertical: 8, paddingHorizontal: 10 },
+  choiceText: { fontSize: 11, fontWeight: "700", writingDirection: "rtl" },
+  saveStyleButton: { borderRadius: 15, alignItems: "center", padding: 14, marginTop: 18 },
 });

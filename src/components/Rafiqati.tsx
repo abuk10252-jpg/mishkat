@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Image, Animated, Easing } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "../theme/colors";
+import { CompanionCustomization, DEFAULT_COMPANION_CUSTOMIZATION } from "../utils/storage";
 
 // رفيقتي — شخصية كاملة الجسم برسمة فنية حقيقية، مع طبقة حركة بسيطة فوق
 // الصور الثابتة (تنفّس مستمر + انتقال ناعم بين الحالات المزاجية + قفزة فرح
@@ -28,18 +29,32 @@ const MOOD_ICON: Record<CompanionMood, keyof typeof Ionicons.glyphMap> = {
 
 // النسبة الحقيقية لأبعاد صور رفيقتي (500×666).
 const ASPECT_RATIO = 666 / 500;
+const OUTFIT_COLORS: Record<CompanionCustomization["outfit"], string> = {
+  rose: "#E78BAA",
+  sunrise: "#E7A33E",
+  lavender: "#9974C6",
+  mint: "#68BFA8",
+};
+const ACCESSORY_ICONS: Record<CompanionCustomization["accessory"], keyof typeof Ionicons.glyphMap | null> = {
+  none: null,
+  book: "book-outline",
+  sparkle: "sparkles-outline",
+  flower: "flower-outline",
+};
 
 export function Rafiqati({
   mood = "neutral",
   palette,
   size = 96,
   showMoodIcon = true,
+  customization = DEFAULT_COMPANION_CUSTOMIZATION,
 }: {
   mood?: CompanionMood;
   palette: Palette;
   size?: number;
   outfitIndex?: number; // محفوظة للتوافق، غير مستخدمة حاليًا
   showMoodIcon?: boolean;
+  customization?: CompanionCustomization;
 }) {
   const height = Math.round(size * ASPECT_RATIO);
 
@@ -139,6 +154,12 @@ export function Rafiqati({
         />
         <Animated.View pointerEvents="none" style={[styles.sparkle, { backgroundColor: palette.accent, opacity: breathe, top: size * 0.2, left: size * 0.08 }]} />
         <Animated.View pointerEvents="none" style={[styles.sparkleSmall, { backgroundColor: palette.accent, opacity: crossfade, top: size * 0.42, right: size * 0.03 }]} />
+        <View pointerEvents="none" style={[styles.outfitGlow, { backgroundColor: OUTFIT_COLORS[customization.outfit], opacity: 0.24, bottom: size * 0.06, left: size * 0.25 }]} />
+        {ACCESSORY_ICONS[customization.accessory] && (
+          <View pointerEvents="none" style={[styles.accessoryBadge, { backgroundColor: OUTFIT_COLORS[customization.outfit], top: size * 0.46, left: size * 0.1 }]}>
+            <Ionicons name={ACCESSORY_ICONS[customization.accessory]!} size={Math.max(12, size * 0.14)} color="#fff" />
+          </View>
+        )}
       </Animated.View>
       {showMoodIcon && (
         <View
@@ -158,15 +179,17 @@ export function RafiqatiBubble({
   text,
   mood = "neutral",
   palette,
+  customization,
 }: {
   text: string;
   mood?: CompanionMood;
   palette: Palette;
+  customization?: CompanionCustomization;
   outfitIndex?: number; // محفوظة للتوافق، غير مستخدمة حاليًا
 }) {
   return (
     <View style={styles.row}>
-      <Rafiqati mood={mood} palette={palette} size={64} />
+      <Rafiqati mood={mood} palette={palette} size={64} customization={customization} />
       <View style={[styles.bubble, { borderColor: palette.accent }]}>
         <Text style={styles.bubbleText}>{text}</Text>
       </View>
@@ -182,6 +205,8 @@ const styles = StyleSheet.create({
   },
   sparkle: { position: "absolute", width: 6, height: 6, borderRadius: 6 },
   sparkleSmall: { position: "absolute", width: 4, height: 4, borderRadius: 4 },
+  outfitGlow: { position: "absolute", width: "52%", height: "20%", borderRadius: 999 },
+  accessoryBadge: { position: "absolute", borderRadius: 999, padding: 4, shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 4, elevation: 2 },
   row: {
     flexDirection: "row-reverse",
     gap: 10,
