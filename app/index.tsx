@@ -22,7 +22,7 @@ const UNIT_TITLES: Record<string, string> = {
   family: "النكاح والأسرة",
   muamalat: "المعاملات والآداب",
   ikhtilaf: "أدب الخلاف الفقهي",
-  challenge: "التحدي النهائي",
+  challenge: "التحهذه النهائي",
 };
 
 const DAILY_XP_GOAL = 30;
@@ -90,11 +90,11 @@ export default function Home() {
           <View style={styles.heroCopy}>
             <Text style={styles.heroEyebrow}>هدف اليوم</Text>
             <Text style={styles.heroTitle}>{dailyProgress >= 1 ? "أتممتِ وردك اليومي!" : "خطوة صغيرة، أثر كبير"}</Text>
-            <Text style={styles.heroText}>{dailyProgress >= 1 ? `رائع يا ${learnerName || "رفيقتي"}! عودي غدًا لنحافظ على النور.` : `${learnerName ? `يا ${learnerName}، ` : ""}واصلي طريقك في طلب العلم بهدوء.`}</Text>
+            <Text style={styles.heroText}>{dailyProgress >= 1 ? `أحسنتِ يا ${learnerName || "رفيقتي"}! عودي غدًا لنحافظ على النور.` : `${learnerName ? `يا ${learnerName}، ` : ""}واصلي طريقك في طلب العلم بهدوء.`}</Text>
             <View style={styles.goalTrack}><View style={[styles.goalFill, { width: `${Math.max(8, dailyProgress * 100)}%`, backgroundColor: palette.accent }]} /></View>
             <Text style={styles.goalLabel}>{Math.min(dailyXp, DAILY_XP_GOAL)} / {DAILY_XP_GOAL} نقطة اليوم</Text>
           </View>
-          <Rafiqati mood={dailyProgress >= 1 ? "happy" : "encouraging"} palette={palette} size={84} showMoodIcon={false} customization={customization} />
+          <Rafiqati mood={dailyProgress >= 1 ? "happy" : "encouraging"} palette={palette} size={56} showMoodIcon={false} customization={customization} />
         </View>
 
         {capsule && (
@@ -138,11 +138,11 @@ export default function Home() {
       <Modal visible={nameModalVisible} transparent animationType="fade" onRequestClose={() => {}}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.modalBackdrop}>
           <View style={styles.nameCard}>
-            <Rafiqati mood="encouraging" palette={palette} size={86} customization={customization} />
-            <Text style={[styles.nameTitle, { color: palette.accentDeep }]}>خلينا نتعرّف عليكِ</Text>
+            <Rafiqati mood="encouraging" palette={palette} size={60} customization={customization} />
+            <Text style={[styles.nameTitle, { color: palette.accentDeep }]}>هيا نتعرّف عليكِ</Text>
             <Text style={[styles.nameHint, { color: palette.accentDeep }]}>ما الاسم الذي تحبين أن تناديكِ به رفيقتي؟</Text>
             <TextInput value={nameDraft} onChangeText={setNameDraft} autoFocus placeholder="اكتبي اسمك هنا" placeholderTextColor="#9B8790" style={[styles.nameInput, { borderColor: palette.accent }]} textAlign="right" />
-            <Pressable style={[styles.nameButton, { backgroundColor: palette.accentDeep }]} onPress={async () => { const name = nameDraft.trim(); if (!name) return; await saveLearnerName(name); setLearnerName(name); setNameModalVisible(false); await playTapSound(); speak(`أهلًا ${name}! أنا رفيقتك، وسأكون معك في رحلة العلم.`); }}>
+            <Pressable style={[styles.nameButton, { backgroundColor: palette.accentDeep }]} onPress={async () => { const name = nameDraft.trim(); if (!name) return; await saveLearnerName(name); setLearnerName(name); setNameModalVisible(false); await playTapSound(); speak(`أهلاً ${name}! أنا رفيقتك، وسأكون معك في رحلة العلم.`); }}>
               <Text style={styles.nameButtonText}>ابدئي الرحلة</Text>
             </Pressable>
           </View>
@@ -152,7 +152,7 @@ export default function Home() {
         <View style={styles.customizeBackdrop}>
           <View style={styles.customizeCard}>
             <View style={styles.customizeTitleRow}><Text style={[styles.customizeTitle, { color: palette.accentDeep }]}>استوديو رفيقتي</Text><Pressable onPress={() => setCustomizeVisible(false)}><Ionicons name="close-circle" size={25} color={palette.accentDeep} /></Pressable></View>
-            <View style={styles.previewRow}><Rafiqati mood="happy" palette={palette} size={112} customization={customization} /><View style={styles.previewCopy}><Text style={[styles.previewTitle, { color: palette.accentDeep }]}>اختاري لمستها اليوم</Text><Text style={[styles.previewText, { color: palette.accentDeep }]}>كلما واصلتِ التعلم، تفتحين خيارات أكثر.</Text></View></View>
+            <View style={styles.previewRow}><Rafiqati mood="happy" palette={palette} size={72} customization={customization} /><View style={styles.previewCopy}><Text style={[styles.previewTitle, { color: palette.accentDeep }]}>اختاري لمستها اليوم</Text><Text style={[styles.previewText, { color: palette.accentDeep }]}>كلما واصلتِ التعلم، تفتحين خيارات أكثر.</Text></View></View>
             <Text style={[styles.choiceLabel, { color: palette.accentDeep }]}>الأزياء</Text>
             <View style={styles.choiceRow}>{([
               ["rose", "وردي", "#E78BAA", true], ["sunrise", "ذهبي", "#E7A33E", true], ["lavender", "بنفسجي", "#9974C6", progress?.xp !== undefined && progress.xp >= 30], ["mint", "نعناعي", "#68BFA8", progress?.streakDays !== undefined && progress.streakDays >= 3],
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   stat: { flexDirection: "row-reverse", alignItems: "center", gap: 7 },
   statText: { fontSize: 15, fontWeight: "800", textAlign: "right" },
   statLabel: { fontSize: 9, opacity: 0.65, textAlign: "right", writingDirection: "rtl" },
-  heroCard: { borderRadius: 24, padding: 18, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", overflow: "hidden", marginBottom: 14 },
+  heroCard: { borderRadius: 24, paddingVertical: 16, paddingHorizontal: 16, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", overflow: "hidden", marginBottom: 14, minHeight: 100 },
   heroCopy: { flex: 1, alignItems: "flex-end" },
   heroEyebrow: { color: "#FFFFFF99", fontSize: 11, writingDirection: "rtl" },
   heroTitle: { color: "#FFF", fontSize: 19, fontWeight: "800", textAlign: "right", writingDirection: "rtl", marginTop: 4 },

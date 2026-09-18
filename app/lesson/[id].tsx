@@ -157,6 +157,18 @@ export default function Lesson() {
       <View style={styles.barTrack}>
         <View style={[styles.barFill, { width: `${progressPct}%`, backgroundColor: palette.accent }]} />
       </View>
+      {!!(lesson.madhhab || lesson.source) && (
+        <View style={[styles.sourceCard, { borderColor: palette.accent + "66", backgroundColor: "#ffffff99" }]}>
+          <View style={styles.sourceHeading}>
+            <Ionicons name="library-outline" size={17} color={palette.accentDeep} />
+            <Text style={[styles.sourceLabel, { color: palette.accentDeep }]}>مسار موثّق</Text>
+            {!!lesson.madhhab && <View style={[styles.madhhabPill, { backgroundColor: palette.accent }]}><Text style={styles.madhhabText}>{lesson.madhhab}</Text></View>}
+          </View>
+          {!!lesson.source && <Text style={[styles.sourceText, { color: palette.accentDeep }]}>{lesson.source}</Text>}
+          <Text style={[styles.sourceNote, { color: palette.accentDeep }]}>محتوى تعليمي معاد الصياغة، وليس فتوى شخصية.</Text>
+          {!!lesson.sourceUrl && <Pressable onPress={() => {}}><Text style={[styles.sourceLink, { color: palette.accentDeep }]}>مرجع الدرس محفوظ في ملف المصادر</Text></Pressable>}
+        </View>
+      )}
 
       <Animated.View style={{ flex: 1, opacity: contentOpacity, transform: [{ translateY: contentOffset }] }}>
       {step.type === "niyyah" && (
@@ -314,6 +326,14 @@ const styles = StyleSheet.create({
   progressCount: { fontSize: 10, opacity: 0.65, writingDirection: "rtl" },
   barTrack: { height: 8, borderRadius: 8, backgroundColor: "#00000018", marginBottom: 24, overflow: "hidden" },
   barFill: { height: 6, borderRadius: 6 },
+  sourceCard: { borderWidth: 1, borderRadius: 16, padding: 11, marginBottom: 16 },
+  sourceHeading: { flexDirection: "row-reverse", alignItems: "center", gap: 6, marginBottom: 5 },
+  sourceLabel: { fontSize: 12, fontWeight: "800", writingDirection: "rtl" },
+  madhhabPill: { marginLeft: "auto", borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
+  madhhabText: { color: "#fff", fontSize: 10, fontWeight: "800", writingDirection: "rtl" },
+  sourceText: { fontSize: 10, lineHeight: 16, textAlign: "right", writingDirection: "rtl" },
+  sourceNote: { fontSize: 9, opacity: 0.65, textAlign: "right", writingDirection: "rtl", marginTop: 4 },
+  sourceLink: { fontSize: 9, textAlign: "right", writingDirection: "rtl", marginTop: 4, textDecorationLine: "underline" },
   question: { fontSize: 18, lineHeight: 27, fontWeight: "700", writingDirection: "rtl", textAlign: "right", marginBottom: 18 },
   opt: {
     borderWidth: 0.5,

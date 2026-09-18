@@ -3,8 +3,8 @@ import { I18nManager } from "react-native";
 import { Stack } from "expo-router";
 import { scheduleDailyReminder } from "../src/utils/notifications";
 
-// التطبيق عربي بالكامل RTL. أول تشغيل بعد التفعيل ده محتاج إعادة تحميل من
-// Expo Go/الـ APK عشان يطبق فعليًا (قيود React Native نفسها، مش حاجة زيادة).
+// التطبيق عربي بالكامل RTL. أول تشغيل بعد التفعيل هذا محتاج إعادة تحميل من
+// Expo Go/الـ APK لكي يطبق فعليًا (قيود React Native نفسها، مش حاجة زيادة).
 if (!I18nManager.isRTL) {
   I18nManager.allowRTL(true);
   I18nManager.forceRTL(true);

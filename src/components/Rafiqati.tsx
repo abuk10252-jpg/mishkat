@@ -4,12 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "../theme/colors";
 import { CompanionCustomization, DEFAULT_COMPANION_CUSTOMIZATION } from "../utils/storage";
 
-// رفيقتي — شخصية كاملة الجسم برسمة فنية حقيقية، مع طبقة حركة بسيطة فوق
-// الصور الثابتة (تنفّس مستمر + انتقال ناعم بين الحالات المزاجية + قفزة فرح
-// لحظة الإجابة الصح). دي مش رسوم متحركة حقيقية بمفاصل منفصلة (ده محتاج أداة
-// رسم/تحريك متخصصة زي Rive وفنان مخصص لتفكيك الشخصية لطبقات) — لكنها بتدي
-// إحساس "حية" حقيقي بدون أي مكتبة إضافية، باستخدام Animated المدمجة في
-// React Native نفسها.
+// رفيقتي — شخصية محجبة برسمة فنية، مع حركة بسيطة (تنفس + انتقال مزاج + قفزة).
+// تُعرض بشكل مضغوط يركز على الوجه والكتفين لتتناسب مع البطاقات الصغيرة
+// وتظهر كرفيقة واضحة التفاصيل دون أن تأخذ مساحة كبيرة.
 
 export type CompanionMood = "neutral" | "happy" | "thinking" | "encouraging";
 
@@ -27,8 +24,9 @@ const MOOD_ICON: Record<CompanionMood, keyof typeof Ionicons.glyphMap> = {
   encouraging: "heart-outline",
 };
 
-// النسبة الحقيقية لأبعاد صور رفيقتي (500×666).
-const ASPECT_RATIO = 666 / 500;
+// نعرض الجزء العلوي فقط (الوجه + الحجاب + الكتفين) لتصبح أصغر وأوضح.
+// الصورة الأصلية 500×666، نأخذ تقريباً أول 55% من الارتفاع.
+const CROP_RATIO = 0.55;
 const OUTFIT_COLORS: Record<CompanionCustomization["outfit"], string> = {
   rose: "#E78BAA",
   sunrise: "#E7A33E",
@@ -45,20 +43,22 @@ const ACCESSORY_ICONS: Record<CompanionCustomization["accessory"], keyof typeof 
 export function Rafiqati({
   mood = "neutral",
   palette,
-  size = 96,
+  size = 72,
   showMoodIcon = true,
   customization = DEFAULT_COMPANION_CUSTOMIZATION,
 }: {
   mood?: CompanionMood;
   palette: Palette;
   size?: number;
-  outfitIndex?: number; // محفوظة للتوافق، غير مستخدمة حاليًا
+  outfitIndex?: number;
   showMoodIcon?: boolean;
   customization?: CompanionCustomization;
 }) {
-  const height = Math.round(size * ASPECT_RATIO);
+  // الارتفاع المعروض أصغر من الجسم الكامل ليظهر الوجه بوضوح.
+  const displayHeight = Math.round(size * 1.15);
+  // الارتفاع الحقيقي للصورة داخل الحاوية (نكبّرها قليلاً ثم نقص الجزء السفلي).
+  const imageHeight = Math.round(displayHeight / CROP_RATIO);
 
-  // -- التنفّس: تكبير/تصغير بسيط مستمر، عشان تحس إنها "واقفة حية" مش صورة مجمّدة.
   const breathe = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const loop = Animated.loop(
@@ -100,8 +100,6 @@ export function Rafiqati({
   const swayRotate = sway.interpolate({ inputRange: [-1, 0, 1], outputRange: ["-2deg", "0deg", "2deg"] });
   const bobTranslate = bob.interpolate({ inputRange: [0, 1], outputRange: [0, -3] });
 
-  // -- الانتقال الناعم بين الحالات المزاجية: صورتين فوق بعض، القديمة بتختفي
-  // والجديدة بتظهر بدل ما تتقفز فجأة.
   const [displayedMood, setDisplayedMood] = useState(mood);
   const [prevMood, setPrevMood] = useState<CompanionMood | null>(null);
   const crossfade = useRef(new Animated.Value(1)).current;
@@ -119,7 +117,6 @@ export function Rafiqati({
     }).start(() => setPrevMood(null));
   }, [mood]);
 
-  // -- قفزة فرح لحظة ما تدخل حالة "سعيدة" (إجابة صح).
   const bounce = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (mood !== "happy") return;
@@ -129,14 +126,14 @@ export function Rafiqati({
       Animated.spring(bounce, { toValue: 0, friction: 3, useNativeDriver: true }),
     ]).start();
   }, [mood]);
-  const bounceTranslateY = bounce.interpolate({ inputRange: [0, 1], outputRange: [0, -10] });
+  const bounceTranslateY = bounce.interpolate({ inputRange: [0, 1], outputRange: [0, -8] });
 
   return (
-    <View style={{ width: size, height }}>
+    <View style={{ width: size, height: displayHeight, overflow: "hidden" }}>
       <Animated.View
         style={{
           width: size,
-          height,
+          height: imageHeight,
           transform: [{ scale: breatheScale }, { rotate: swayRotate }, { translateY: bobTranslate }, { translateY: bounceTranslateY }],
         }}
       >
@@ -144,20 +141,20 @@ export function Rafiqati({
           <Animated.Image
             source={MOOD_IMAGES[prevMood]}
             style={[StyleSheet.absoluteFill, { opacity: crossfade.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }]}
-            resizeMode="contain"
+            resizeMode="cover"
           />
         )}
         <Animated.Image
           source={MOOD_IMAGES[displayedMood]}
           style={[StyleSheet.absoluteFill, prevMood ? { opacity: crossfade } : null]}
-          resizeMode="contain"
+          resizeMode="cover"
         />
-        <Animated.View pointerEvents="none" style={[styles.sparkle, { backgroundColor: palette.accent, opacity: breathe, top: size * 0.2, left: size * 0.08 }]} />
-        <Animated.View pointerEvents="none" style={[styles.sparkleSmall, { backgroundColor: palette.accent, opacity: crossfade, top: size * 0.42, right: size * 0.03 }]} />
-        <View pointerEvents="none" style={[styles.outfitGlow, { backgroundColor: OUTFIT_COLORS[customization.outfit], opacity: 0.24, bottom: size * 0.06, left: size * 0.25 }]} />
+        <Animated.View pointerEvents="none" style={[styles.sparkle, { backgroundColor: palette.accent, opacity: breathe, top: size * 0.18, left: size * 0.08 }]} />
+        <Animated.View pointerEvents="none" style={[styles.sparkleSmall, { backgroundColor: palette.accent, opacity: crossfade, top: size * 0.38, right: size * 0.04 }]} />
+        <View pointerEvents="none" style={[styles.outfitGlow, { backgroundColor: OUTFIT_COLORS[customization.outfit], opacity: 0.22, bottom: size * 0.08, left: size * 0.22 }]} />
         {ACCESSORY_ICONS[customization.accessory] && (
-          <View pointerEvents="none" style={[styles.accessoryBadge, { backgroundColor: OUTFIT_COLORS[customization.outfit], top: size * 0.46, left: size * 0.1 }]}>
-            <Ionicons name={ACCESSORY_ICONS[customization.accessory]!} size={Math.max(12, size * 0.14)} color="#fff" />
+          <View pointerEvents="none" style={[styles.accessoryBadge, { backgroundColor: OUTFIT_COLORS[customization.outfit], top: size * 0.42, left: size * 0.08 }]}>
+            <Ionicons name={ACCESSORY_ICONS[customization.accessory]!} size={Math.max(11, size * 0.13)} color="#fff" />
           </View>
         )}
       </Animated.View>
@@ -168,7 +165,7 @@ export function Rafiqati({
             { backgroundColor: palette.accent, right: size * 0.02, top: size * 0.02 },
           ]}
         >
-          <Ionicons name={MOOD_ICON[mood]} size={Math.max(12, size * 0.16)} color="#fff" />
+          <Ionicons name={MOOD_ICON[mood]} size={Math.max(11, size * 0.15)} color="#fff" />
         </View>
       )}
     </View>
@@ -185,11 +182,11 @@ export function RafiqatiBubble({
   mood?: CompanionMood;
   palette: Palette;
   customization?: CompanionCustomization;
-  outfitIndex?: number; // محفوظة للتوافق، غير مستخدمة حاليًا
+  outfitIndex?: number;
 }) {
   return (
     <View style={styles.row}>
-      <Rafiqati mood={mood} palette={palette} size={64} customization={customization} />
+      <Rafiqati mood={mood} palette={palette} size={48} customization={customization} />
       <View style={[styles.bubble, { borderColor: palette.accent }]}>
         <Text style={styles.bubbleText}>{text}</Text>
       </View>
@@ -201,12 +198,12 @@ const styles = StyleSheet.create({
   moodBadge: {
     position: "absolute",
     borderRadius: 999,
-    padding: 4,
+    padding: 3,
   },
-  sparkle: { position: "absolute", width: 6, height: 6, borderRadius: 6 },
-  sparkleSmall: { position: "absolute", width: 4, height: 4, borderRadius: 4 },
-  outfitGlow: { position: "absolute", width: "52%", height: "20%", borderRadius: 999 },
-  accessoryBadge: { position: "absolute", borderRadius: 999, padding: 4, shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 4, elevation: 2 },
+  sparkle: { position: "absolute", width: 5, height: 5, borderRadius: 5 },
+  sparkleSmall: { position: "absolute", width: 3.5, height: 3.5, borderRadius: 4 },
+  outfitGlow: { position: "absolute", width: "50%", height: "18%", borderRadius: 999 },
+  accessoryBadge: { position: "absolute", borderRadius: 999, padding: 3, shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 4, elevation: 2 },
   row: {
     flexDirection: "row-reverse",
     gap: 10,
@@ -219,7 +216,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     backgroundColor: "#fff",
-    marginTop: 8,
+    marginTop: 4,
   },
   bubbleText: {
     fontSize: 14,

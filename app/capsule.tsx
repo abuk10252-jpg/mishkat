@@ -14,10 +14,10 @@ import {
   saveProgress,
   MistakeEntry,
 } from "../src/utils/storage";
-import { speak, stopSpeaking } from "../src/utils/speech";
+import { stopSpeaking } from "../src/utils/speech";
 
-// كبسولة الزمن — غلطة قديمة (أسبوع فأكتر) بترجعلك بشكل مفاجئ عشان تشوفي
-// بنفسك إنك اتقدمتي. مش اختبار عقابي؛ الهدف إحساس "أنا فعلاً باقي أفتكر ده".
+// كبسولة الزمن — خطأ قديم (أسبوع فأكثر) يعود إليكِ بشكل مفاجئ لكي تري
+// بنفسك أنكِ قد تقدّمتِ. ليست اختبارًا عقابيًا؛ الهدف إحساس "أنا فعلاً ما زلتُ أتذكر هذا".
 export default function TimeCapsule() {
   const router = useRouter();
   const palette = getPalette(getDayPeriod());
@@ -27,14 +27,6 @@ export default function TimeCapsule() {
     getTimeCapsuleMistake().then(setMistake);
     return () => stopSpeaking();
   }, []);
-
-  useEffect(() => {
-    if (mistake) {
-      speak(`من فترة غلطتي في السؤال ده... جربي تتذكري الإجابة الصح دلوقتي: ${mistake.question}`);
-    } else if (mistake === null) {
-      speak("مافي كبسولة زمن جاهزة النهاردة، ارجعي بعدين.");
-    }
-  }, [mistake]);
 
   async function handleRemembered() {
     if (!mistake) return;
@@ -62,7 +54,7 @@ export default function TimeCapsule() {
           <RafiqatiBubble
             palette={palette}
             mood="happy"
-            text="مافي كبسولة زمن جاهزة النهاردة — ارجعي بعدين، الوقت لسه ما حان."
+            text="لا توجد كبسولة زمن جاهزة اليوم — ارجعي لاحقًا، لم يحن الوقت بعد."
           />
           <Pressable style={[styles.btn, { borderColor: palette.accent }]} onPress={() => router.replace("/")}>
             <Text style={styles.btnText}>رجوع</Text>
@@ -75,16 +67,16 @@ export default function TimeCapsule() {
           <RafiqatiBubble
             palette={palette}
             mood="thinking"
-            text={`من فترة غلطتي في السؤال ده... جربي تتذكري الإجابة الصح دلوقتي:\n\n"${mistake.question}"`}
+            text={`منذ فترة أخطأتِ في هذا السؤال... حاولي أن تتذكري الإجابة الصحيحة الآن:\n\n"${mistake.question}"`}
           />
           <Pressable
             style={[styles.btn, { borderColor: palette.accent, backgroundColor: palette.accent }]}
             onPress={handleRemembered}
           >
-            <Text style={[styles.btnText, { color: "#fff" }]}>تذكرت الإجابة الصح</Text>
+            <Text style={[styles.btnText, { color: "#fff" }]}>تذكرتُ الإجابة الصحيحة</Text>
           </Pressable>
           <Pressable style={[styles.btn, { borderColor: palette.accent }]} onPress={goReview}>
-            <Text style={styles.btnText}>محتاجة أراجع الدرس ده تاني</Text>
+            <Text style={styles.btnText}>أحتاج إلى مراجعة هذا الدرس مرة أخرى</Text>
           </Pressable>
         </View>
       )}
